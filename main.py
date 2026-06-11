@@ -1,42 +1,37 @@
 # AI 활용 자유 주제 파이썬 미니 프로젝트
-# 이름 또는 학번: 
-# 프로젝트 주제: 
-
+# 이름 또는 학번: 20910 배서주
+# 프로젝트 주제: 다기준 의사결정(MCDA) 기반 학과 선택기
 # ============================================================
-# 사용 안내
-# ------------------------------------------------------------
-# 이 파일은 예시 골격입니다.
-# 그대로 제출하지 말고, 반드시 자신의 주제에 맞게 수정하세요.
-#
-# 필수 조건
-# 1. 2차원 리스트 사용
-# 2. 함수 2개 이상, 가능하면 3개 이상 분리
-# 3. 조건문 사용
-# 4. 반복문 사용
-# 5. 실행 결과 출력
+# # 사용 안내
+# # ------------------------------------------------------------
+# # 필수 조건 만족 확인
+# # 1. 2차원 리스트 사용 (department_data)
+# # 2. 함수 3개 이상 분리 (show_intro, get_user_input, find_recommendations, print_result)
+# # 3. 조건문 사용 (if-elif-else 등급 분류)
+# # 4. 반복문 사용 (for문을 통한 리스트 순회 및 출력)
+# # 5. 실행 결과 출력 (각 학과별 점수 및 추천 등급)
 # ============================================================
 
 
 # ------------------------------------------------------------
 # 1. 데이터 준비: 2차원 리스트
 # ------------------------------------------------------------
-# 아래 예시는 "활동 추천 프로그램"입니다.
-# 자신의 주제에 맞게 data를 만드세요.
+# 자유전공학부생의 학과 선택을 돕기 위한 가상의 학과별 특성 데이터입니다.
+# 개인정보 보호를 위해 실제 학생 데이터가 아닌 가상 점수로 구성했습니다.
 #
 # 현재 열의 의미:
-# 0번 열: 활동 이름
-# 1번 열: 필요한 시간(분)
-# 2번 열: 추천 기분
-# 3번 열: 활동 유형
+# 0번 열: 학과 이름
+# 1번 열: 학과의 '적성' 부합 점수
+# 2번 열: 학과의 '발전가능성' 점수
+# 3번 열: 학과의 '흥미' 유발 점수
 # ------------------------------------------------------------
 
-activities = [
-    ["산책하기", 30, "피곤", "운동"],
-    ["짧은 낮잠", 20, "피곤", "휴식"],
-    ["좋아하는 음악 듣기", 10, "우울", "휴식"],
-    ["문제집 3쪽 풀기", 40, "차분", "공부"],
-    ["방 정리하기", 25, "답답", "생활"],
-    ["친구에게 연락하기", 15, "우울", "소통"],
+department_data = [
+    ["경제학과", 8, 9, 7],
+    ["컴퓨터공학과", 9, 10, 6],
+    ["미디어학과", 7, 8, 9],
+    ["심리학과", 6, 7, 8],
+    ["정치외교학과", 7, 7, 7],
 ]
 
 
@@ -48,50 +43,77 @@ def show_intro():
     """프로그램 제목과 안내를 출력한다."""
     print("=" * 40)
     print("AI 활용 자유 주제 파이썬 미니 프로젝트")
-    print("예시: 기분과 시간에 따른 활동 추천기")
+    print("주제: 다기준 의사결정(MCDA) 기반 학과 선택기")
     print("=" * 40)
+    print("자신의 진로 기준별 중요도(1~5점)를 입력하면")
+    print("알고리즘을 통해 최적의 학과를 추천해 드립니다.\n")
 
 
 def get_user_input():
-    """사용자에게 기분과 남은 시간을 입력받는다."""
-    mood = input("현재 기분을 입력하세요. 예: 피곤, 우울, 차분, 답답: ")
-    minutes = int(input("사용 가능한 시간을 분 단위로 입력하세요: "))
-    return mood, minutes
+    """사용자에게 진로 기준별 가중치를 입력받는다."""
+    print("=== 진로 선택 가중치 입력 (1점 ~ 5점) ===")
+    
+    # input으로 입력받은 문자열을 연산을 위해 int()를 사용해 정수로 변환합니다.
+    w_aptitude = int(input("1. 나의 '적성'은 얼마나 중요한가요? : "))
+    w_growth = int(input("2. 학과의 '발전가능성'은 얼마나 중요한가요? : "))
+    w_interest = int(input("3. 나의 '흥미'는 얼마나 중요한가요? : "))
+    
+    # 입력받은 세 가지 중요도 가중치를 하나의 리스트로 묶어서 반환합니다.
+    return [w_aptitude, w_growth, w_interest]
 
 
-def find_recommendations(data, mood, minutes):
-    """2차원 리스트를 반복하며 조건에 맞는 활동을 찾는다."""
+def find_recommendations(data, weights):
+    """2차원 리스트를 반복하며 사용자의 가중치를 곱해 총점을 계산한다."""
     results = []
+    
+    # weights 리스트에서 가중치 값을 순서대로 꺼냅니다.
+    w_apt, w_gro, w_int = weights
 
     for row in data:
-        name = row[0]
-        required_minutes = row[1]
-        recommended_mood = row[2]
-        activity_type = row[3]
+        name = row[0]       # 학과 이름
+        score_apt = row[1]  # 학과 적성 점수
+        score_gro = row[2]  # 학과 발전성 점수
+        score_int = row[3]  # 학과 흥미 점수
 
-        # 조건문: 사용자의 기분과 시간이 활동 조건에 맞는지 판단한다.
-        if recommended_mood == mood and required_minutes <= minutes:
-            results.append([name, required_minutes, activity_type])
+        # 다기준 의사결정(MCDA) 핵심 알고리즘 처리: (학과 고유 점수 * 사용자의 중요도 가중치)를 모두 더함
+        total_score = (score_apt * w_apt) + (score_gro * w_gro) + (score_int * w_int)
+
+        # 결과 리스트에 [학과이름, 계산된 총점]의 형태로 저장합니다.
+        results.append([name, total_score])
 
     return results
 
 
 def print_result(results):
-    """추천 결과를 출력한다."""
-    print("\n[추천 결과]")
+    """추천 결과를 조건에 맞게 등급을 분류하여 출력한다."""
+    print("\n========================================")
+    print("           최종 학과 분석 결과          ")
+    print("========================================")
 
+    # 결과 리스트에 데이터가 없는 예외 상황을 확인합니다.
     if len(results) == 0:
-        print("조건에 맞는 활동이 없습니다.")
-        print("시간을 늘리거나 다른 기분을 입력해 보세요.")
+        print("분석할 학과 데이터가 존재하지 않습니다.")
     else:
+        # 반복문을 사용하여 계산된 모든 학과의 결과를 순서대로 출력합니다.
         for item in results:
-            print(f"- {item[0]} / {item[1]}분 / 유형: {item[2]}")
+            dept_name = item[0]
+            final_score = item[1]
+            
+            # 조건문 활용: 산출된 종합 점수의 기준에 따라 추천 등급을 나누어 문구를 다르게 출력합니다.
+            if final_score >= 100:
+                print(f"▶ {dept_name} : {final_score}점 [★ 강력 추천!]")
+            elif final_score >= 80:
+                print(f"▶ {dept_name} : {final_score}점 [우수 추천]")
+            else:
+                print(f"▶ {dept_name} : {final_score}점")
+                
+    print("========================================")
 
 
 def main():
     show_intro()
-    mood, minutes = get_user_input()
-    results = find_recommendations(activities, mood, minutes)
+    weights = get_user_input()
+    results = find_recommendations(department_data, weights)
     print_result(results)
 
 
